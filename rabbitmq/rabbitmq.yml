@@ -22,10 +22,7 @@ spec:
             - name: RABBITMQ_DEFAULT_USER
               value: "admin"
             - name: RABBITMQ_DEFAULT_PASS
-              valueFrom:
-                secretKeyRef:
-                  name: rabbitmq-secrets
-                  key: password
+              value: "password"
 
 ---
 apiVersion: v1
