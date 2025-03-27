@@ -1,0 +1,36 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v3
+
+      - name: Configurar acceso SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Copiar archivos al VPS
+        run: |
+          scp -r databases rabbitmq scripts ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/manifests/
+
+      - name: Aplicar manifiestos en Kubernetes
+        run: |
+          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'EOF'
+          kubectl apply -f ~/manifests/databases/postgres-operational.yml
+          kubectl apply -f ~/manifests/databases/postgres-users.yml
+          kubectl apply -f ~/manifests/rabbitmq/rabbitmq.yml
+          EOF
