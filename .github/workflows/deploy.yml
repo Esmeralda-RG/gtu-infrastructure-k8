@@ -27,9 +27,11 @@ jobs:
       - name: Verify SSH connection
         run: ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "echo SSH connection successful"
 
+      - name: Ensure deploy directory exists
+        run: ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "mkdir -p ~/deploy"
+
       - name: Copy docker-compose.yml to VPS
-        run: |
-          scp -o StrictHostKeyChecking=no docker-compose.yml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/deploy
+        run: scp -o StrictHostKeyChecking=no docker-compose.yml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/deploy/
 
       - name: Deploy services with Docker Compose
         run: |
@@ -39,17 +41,47 @@ jobs:
             docker compose up -d --remove-orphans 
             docker system prune -f 
           EOF
+          
       - name: Notify Slack on Success
         if: success()
         run: |
           curl -X POST -H 'Content-type: application/json' \
-          --data '{"text":"✅ *Deployment successful!* 🚀\nRepository: `${{ github.repository }}`\nBranch: `${{ github.ref }}`\nCommit: `${{ github.sha }}`"}' \
+          --data '{
+            "text": "✅ *Deployment successful!* 🚀",
+            "attachments": [
+              {
+                "color": "#36a64f",
+                "fields": [
+                  { "title": "Repository", "value": "${{ github.repository }}", "short": true },
+                  { "title": "Branch", "value": "${{ github.ref }}", "short": true },
+                  { "title": "Commit", "value": "<${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}|${{ github.sha }}>", "short": true },
+                  { "title": "Author", "value": "${{ github.actor }}", "short": true },
+                  { "title": "Timestamp", "value": "$(date)", "short": false },
+                  { "title": "Workflow Run", "value": "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Workflow>", "short": false }
+                ]
+              }
+            ]
+          }' \
           ${{ secrets.SLACK_WEBHOOK_URL }}
 
       - name: Notify Slack on Failure
         if: failure()
         run: |
           curl -X POST -H 'Content-type: application/json' \
-          --data '{"text":"❌ *Deployment failed!* 🔥\nRepository: `${{ github.repository }}`\nBranch: `${{ github.ref }}`\nCommit: `${{ github.sha }}`"}' \
+          --data '{
+            "text": "❌ *Deployment failed!* 🔥",
+            "attachments": [
+              {
+                "color": "#ff0000",
+                "fields": [
+                  { "title": "Repository", "value": "${{ github.repository }}", "short": true },
+                  { "title": "Branch", "value": "${{ github.ref }}", "short": true },
+                  { "title": "Commit", "value": "<${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}|${{ github.sha }}>", "short": true },
+                  { "title": "Author", "value": "${{ github.actor }}", "short": true },
+                  { "title": "Timestamp", "value": "$(date)", "short": false },
+                  { "title": "Workflow Run", "value": "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Workflow>", "short": false }
+                ]
+              }
+            ]
+          }' \
           ${{ secrets.SLACK_WEBHOOK_URL }}
-
