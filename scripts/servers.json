@@ -1,0 +1,25 @@
+{
+    "Servers": {
+      "1": {
+        "Name": "Postgres Main",
+        "Group": "Servers",
+        "Host": "postgres-main",
+        "Port": 5432,
+        "MaintenanceDB": "gtu_main_db",
+        "Username": "user",
+        "Password": "password",
+        "SSLMode": "prefer"
+      },
+      "2": {
+        "Name": "Postgres Users",
+        "Group": "Servers",
+        "Host": "postgres-users",
+        "Port": 5432,
+        "MaintenanceDB": "gtu_users_db",
+        "Username": "user",
+        "Password": "password",
+        "SSLMode": "prefer"
+      }
+    }
+  }
+  
