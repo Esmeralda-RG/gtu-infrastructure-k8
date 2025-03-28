@@ -27,15 +27,13 @@ jobs:
       - name: Verify SSH connection
         run: ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "echo SSH connection successful"
 
-      - name: Copy files to VPS
+            - name: Copy manifests to VPS
         run: |
-          scp -o StrictHostKeyChecking=no -C -r databases rabbitmq scripts \
-          ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/manifests/
+          scp -o StrictHostKeyChecking=no -r databases rabbitmq ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/manifests
 
-      - name: Apply manifests in Kubernetes
+      - name: Apply Kubernetes manifests
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'EOF'
-            kubectl apply -f ~/manifests/databases/postgres-operational.yml
-            kubectl apply -f ~/manifests/databases/postgres-users.yml
-            kubectl apply -f ~/manifests/rabbitmq/rabbitmq.yml
+            kubectl apply -f ~/manifests/databases/
+            kubectl apply -f ~/manifests/rabbitmq/
           EOF
