@@ -27,7 +27,7 @@ jobs:
       - name: Verify SSH connection
         run: ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "echo SSH connection successful"
 
-            - name: Copy manifests to VPS
+      - name: Copy manifests to VPS
         run: |
           scp -o StrictHostKeyChecking=no -r databases rabbitmq ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:~/manifests
 
