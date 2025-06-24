@@ -1,0 +1,54 @@
+services:
+  postgres-main:
+    image: postgres:15-alpine
+    container_name: postgres-main
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: gtu_main_db
+    networks:
+      - shared_network
+
+  postgres-users:
+    image: postgres:15-alpine
+    container_name: postgres-users
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: gtu_users_db
+    networks:
+      - shared_network
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=password
+    networks:
+      - shared_network
+
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4
+    ports:
+      - "3000:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@gtu.com
+      PGADMIN_DEFAULT_PASSWORD: password
+      PGADMIN_SERVER_JSON_FILE: "/pgadmin4/servers.json"
+    depends_on:
+      - postgres-main
+      - postgres-users
+    volumes:
+      - ./scripts/servers.json:/pgadmin4/servers.json
+
+    networks:
+      - shared_network
+networks:
+  shared_network:
+    name: shared_network
+    driver: bridge
